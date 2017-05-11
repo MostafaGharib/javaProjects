@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import com.mostafa.HttpURLConnectionExample.CalculateResponseTime;
 import com.mostafa.HttpURLConnectionExample.ThreadCounter;
 
 public class GetRequestTask implements Runnable {
@@ -18,7 +19,9 @@ public class GetRequestTask implements Runnable {
 	int requestsPerThread ;
 	int requestTimeoutlimit ;
 	String urlArgument ;
-	
+	long startTime= 0L ;
+	long elapsedTime = 0L ;
+	CalculateResponseTime  calculateResponseTime = new CalculateResponseTime() ;
 	
 	public GetRequestTask(int requestsPerThread, int requestTimeoutlimit , String urlArgument ,ThreadCounter counter) {
 		super();
@@ -44,6 +47,12 @@ public class GetRequestTask implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.out.println("before addResponseTime(elapsedTime)  in run ");
+		calculateResponseTime.addResponseTime(elapsedTime);
+		System.out.println("After addResponseTime(elapsedTime) in run  ");
+		
+		
 	}
 	
 	
@@ -54,28 +63,19 @@ public class GetRequestTask implements Runnable {
 			url = new URL(query);
 			HttpURLConnection connection;
 			try {
-				connection = (HttpURLConnection) url.openConnection();
-
-//				System.out.println( "connection.getInputStream()  :     "+ connection.getInputStream());
-//				System.out.println( "connection.getConnectTimeout()  :     "+ connection.getConnectTimeout());
-//				System.out.println( "connection.getContentLengthLong()  :     "+ connection.getContentLengthLong());
-//				System.out.println( "connection.getDate()  :     "+ connection.getDate());
-//				System.out.println( "connection.getResponseCode()  :     "+ connection.getResponseCode());
-//				System.out.println( "connection.getResponseMessage()  :     "+ connection.getResponseMessage());
-//				System.out.println( "connection.getContentEncoding()  :     "+ connection.getContentEncoding());
-//				System.out.println( "connection.getContentType()  :     "+ connection.getContentType());
-//				System.out.println( "connection.getExpiration())  :     "+ connection.getExpiration());
-//				System.out.println( "connection.getRequestMethod()  :     "+ connection.getRequestMethod());
-//				System.out.println( "************************************************************************");
-				
-				
+				connection = (HttpURLConnection) url.openConnection();	
 				connection.setRequestMethod("GET");
 				connection.setRequestProperty("User-Agent","Mozilla/5.0");
 				int responseCode = connection.getResponseCode();
 				connection.setConnectTimeout(requestTimeoutlimit);
-			//	getResponseHeader(connection) ;
 				if (responseCode == 200) {
+					
+					startTime = System.currentTimeMillis();
+					
 				String response = getResponse(connection);
+				
+				 elapsedTime = System.currentTimeMillis() - startTime;
+				
 			//	System.out.println("response: " + response.toString());
 				} else {
 				System.out.println("Bad Response Code: " + responseCode);
@@ -97,9 +97,9 @@ public class GetRequestTask implements Runnable {
 	
 }
 	private String getResponse(HttpURLConnection connection) {
-		try (BufferedReader br = new BufferedReader(
-		new InputStreamReader(
-		connection.getInputStream()));) {
+		
+		
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));) {
 		String inputLine;
 		StringBuilder response = new StringBuilder();
 		while ((inputLine = br.readLine()) != null) {

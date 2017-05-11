@@ -6,7 +6,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +22,7 @@ public class HttpURLConnectionExample {
 	
 		Scanner scanner = new Scanner(System.in);
 		ThreadCounter counter = new ThreadCounter();
+		CalculateResponseTime calculateResponseTime = new CalculateResponseTime() ;
 		
 		   System.out.println();
 		   System.out.println();
@@ -31,6 +37,7 @@ public class HttpURLConnectionExample {
            int requestsPerThread = scanner.nextInt() ;
            System.out.println("please Enter the request timeout limit in (ms) ");
            int requestTimeoutlimit = scanner.nextInt();
+           scanner.close();
            
            ExecutorService executor = Executors.newCachedThreadPool();
            
@@ -55,7 +62,14 @@ public class HttpURLConnectionExample {
 		   double totalTimeConsumed =  (System.currentTimeMillis() - t1) / 1000.0 ;
 		   System.out.println("Total Time Consumed : " + totalTimeConsumed + " seconds");
 		   System.out.println("number of fired thread : " + counter.getCounter());
+		   System.out.println("Max Response Time : " + calculateResponseTime.getmaxResonseTime());
+		   System.out.println("Min Response Time : " + calculateResponseTime.getminResonseTime() );
+		   System.out.println("Average ResponseTime : " + calculateResponseTime.getAverageTime());
+		    
+		  
 		}
+	
+	
 	
 	public static class ThreadCounter {
 		int counter = 0  ;
@@ -63,10 +77,84 @@ public class HttpURLConnectionExample {
 		public synchronized void updateCounter() {
 			counter ++ ;
 		}
+		
 
 	}
 	
-	
+	public static class CalculateResponseTime {
+		
+	   static ArrayList<Long>  responseList  = new ArrayList<>() ;
+		
+		
+		public CalculateResponseTime() {
+			// TODO Auto-generated constructor stub
+		
+		}
+		
+		
+		
+		public synchronized void addResponseTime (Long r) {
+			responseList.add(r) ;
+			ListIterator<Long> iterator = responseList.listIterator();
+		    while(iterator.hasNext()){
+		    	System.out.println(iterator.next());
+		    	
+		    }
+		    
+		    try {
+		     Thread.sleep(10000);
+		    	 }
+		    	 catch (InterruptedException ex) {
+		    	 }
+		}
+		
+		Long getmaxResonseTime () {
+			
+			Long  value = 0l ;
+			Collections.sort(responseList);
+			ListIterator<Long> iterator = responseList.listIterator();
+		    while(iterator.hasNext()){
+		    	System.out.println("iterator.hasNext()" + iterator.next());
+		    	if(!iterator.hasNext()){
+		            System.out.println("at end of the list");
+		           value = iterator.previous() ; 
+		            break ;
+		    	}
+		    }
+		       
+		    return value ;
+		    
+		}
+		
+		Long getminResonseTime () {
+			
+			Long  value = 0l ;
+			Collections.sort(responseList);
+			ListIterator<Long> iterator = responseList.listIterator();
+			while(iterator.hasNext()){
+		    	System.out.println("iterator.hasNext()" + iterator.next());
+		    	if(!iterator.hasPrevious()){
+		            System.out.println("at start of the list");
+		            value = iterator.next() ; 
+		            break ;
+		    	}
+		    }
+		       
+		    return value ;
+		}
+		
+		Long getAverageTime() {
+			
+			System.out.println("responseList.size() : " + responseList.size() );
+			Long sum = 0L ;
+			for (int i = 0 ; i < responseList.size()-1 ; i++ )
+			sum +=  (Long)responseList.get(i)	;
+			
+			return (sum / responseList.size());
+				
+		}
+			
+	}
 
 }
 
