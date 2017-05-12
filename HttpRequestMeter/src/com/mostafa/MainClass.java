@@ -197,9 +197,9 @@ public class MainClass {
 			Collections.sort(responseList);
 			ListIterator<Long> iterator = responseList.listIterator();
 			while(iterator.hasNext()){
-				System.out.println("iterator.next()" + iterator.next());
+				//System.out.println("iterator.next()" + iterator.next());
 		    	if(!iterator.hasPrevious()){
-		           System.out.println("at start of the list");
+		        //   System.out.println("at start of the list");
 		            value = iterator.next() ; 
 		            break ;
 		    	}
