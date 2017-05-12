@@ -236,7 +236,7 @@ public class MainClass {
 		
 		
 		public double getRate(int noOfThreads) {
-			rate = (noOfThreads/getAverageTime().doubleValue())*60;
+			rate = (noOfThreads/getAverageTime().doubleValue())*60000;
 			return rate;
 		}
 	}
