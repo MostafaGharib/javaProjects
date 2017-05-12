@@ -7,11 +7,13 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.mostafa.HttpURLConnectionExample.CalculateResponseTime;
-import com.mostafa.HttpURLConnectionExample.ThreadCounter;
+import com.mostafa.MainClass.CalculateResponseTime;
+import com.mostafa.MainClass.ThreadCounter;
 
 public class GetRequestTask implements Runnable {
 
@@ -20,7 +22,11 @@ public class GetRequestTask implements Runnable {
 	int requestTimeoutlimit ;
 	String urlArgument ;
 	long startTime= 0L ;
-	long elapsedTime = 0L ;
+	//static ArrayList<Long>  elapsedTimeList  = new ArrayList<>() ;
+	static List<Long> elapsedTimeList  = new CopyOnWriteArrayList<Long>() ;
+	static int successfulRequests ;
+	static int faildRequests ;
+	
 	CalculateResponseTime  calculateResponseTime = new CalculateResponseTime() ;
 	
 	public GetRequestTask(int requestsPerThread, int requestTimeoutlimit , String urlArgument ,ThreadCounter counter) {
@@ -48,11 +54,16 @@ public class GetRequestTask implements Runnable {
 			e.printStackTrace();
 		}
 		
-		System.out.println("before addResponseTime(elapsedTime)  in run ");
-		calculateResponseTime.addResponseTime(elapsedTime);
-		System.out.println("After addResponseTime(elapsedTime) in run  ");
+	//	System.out.println("before addResponseTime(elapsedTime)  in run ");
+		calculateResponseTime.addResponseTime(elapsedTimeList);
+	//	System.out.println("After addResponseTime(elapsedTime) in run  ");
 		
 		
+		calculateResponseTime.setSuccessfulRequests(successfulRequests);
+		calculateResponseTime.setFaildRequests(faildRequests);
+		
+	//	System.out.println("number of successful requests : " + successfulRequests);
+	//	System.out.println("number of faild requests : " + faildRequests);
 	}
 	
 	
@@ -68,21 +79,33 @@ public class GetRequestTask implements Runnable {
 				connection.setRequestProperty("User-Agent","Mozilla/5.0");
 				int responseCode = connection.getResponseCode();
 				connection.setConnectTimeout(requestTimeoutlimit);
+			//	System.out.println("response code : " + responseCode );
 				if (responseCode == 200) {
 					
-					startTime = System.currentTimeMillis();
+					
+					successfulRequests++ ;
+					
+				startTime = System.currentTimeMillis();
 					
 				String response = getResponse(connection);
 				
-				 elapsedTime = System.currentTimeMillis() - startTime;
+				elapsedTimeList.add(System.currentTimeMillis() - startTime);
 				
 			//	System.out.println("response: " + response.toString());
 				} else {
 				System.out.println("Bad Response Code: " + responseCode);
+				faildRequests++ ;
 				}
 				
 				
-			} catch (IOException e) {
+			}catch(java.net.SocketException e){
+				// e.printStackTrace();
+				System.out.println("connection time out");
+				faildRequests++ ;
+				
+			}
+			
+			catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("please check your internet connection or try again later");
 			}
